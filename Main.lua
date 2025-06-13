@@ -188,14 +188,14 @@ local function fetchScripts()
 
     if success and response.Success then
         local data = HttpService:JSONDecode(response.Body)
-        if data and data.result and data.result.scripts then
+        if data and data.result and data.result.scripts and #data.result.scripts > 0 then
             for _, scriptData in ipairs(data.result.scripts) do
                 local scriptDesc = ('<font color="#a1a1aa">• Game:</font> %s\n<font color="#a1a1aa">• Views:</font> %d'):format(
                     scriptData.game.name or "N/A",
                     scriptData.views or 0
                 )
                 
-                local paragraph = resultsSection:Paragraph({
+                resultsSection:Paragraph({
                     Title = scriptData.title,
                     Desc = scriptDesc,
                     Buttons = {
@@ -215,7 +215,6 @@ local function fetchScripts()
                         }
                     }
                 })
-                table.insert(scriptResults, paragraph)
             end
         else
             resultsSection:Paragraph({
@@ -413,7 +412,7 @@ Tabs.ColorPickerTab:Colorpicker({
 Tabs.DialogTab:Button({
     Title = "Create Example Dialog",
     Callback = function()
-        Window:b({
+        Window:Dialog({
             Title = "Example Dialog",
             Content = "Example Content. lalala",
             Icon = "bird",
@@ -865,6 +864,57 @@ Tabs.CreateThemeTab:Button({
         updateTheme()
     end
 })
+
+local InviteCode = "ApbHXtAwU2"
+local DiscordAPI = "https://discord.com/api/v10/invites/" .. InviteCode .. "?with_counts=true&with_expiration=true"
+
+local Response = game:GetService("HttpService"):JSONDecode(WindUI.Creator.Request({
+    Url = DiscordAPI,
+    Method = "GET",
+    Headers = {
+        ["User-Agent"] = "RobloxBot/1.0",
+        ["Accept"] = "application/json"
+    }
+}).Body)
+
+if Response and Response.guild then
+    local DiscordInfo = Tabs.Tests:Paragraph({
+        Title = Response.guild.name,
+        Desc = 
+            ' <font color="#52525b">•</font> Member Count : ' .. tostring(Response.approximate_member_count) .. 
+            '\n <font color="#16a34a">•</font> Online Count : ' .. tostring(Response.approximate_presence_count)
+        ,
+        Image = "https://cdn.discordapp.com/icons/" .. Response.guild.id .. "/" .. Response.guild.icon .. ".png?size=1024",
+        ImageSize = 42,
+    })
+
+    Tabs.Tests:Button({
+        Title = "Update Info",
+        --Image = "refresh-ccw",
+        Callback = function()
+            local UpdatedResponse = game:GetService("HttpService"):JSONDecode(WindUI.Creator.Request({
+                Url = DiscordAPI,
+                Method = "GET",
+            }).Body)
+            
+            if UpdatedResponse and UpdatedResponse and UpdatedResponse.guild then
+                DiscordInfo:SetDesc(
+                    ' <font color="#52525b">•</font> Member Count : ' .. tostring(UpdatedResponse.approximate_member_count) .. 
+                    '\n <font color="#16a34a">•</font> Online Count : ' .. tostring(UpdatedResponse.approximate_presence_count)
+                )
+            end
+        end
+    })
+else
+    Tabs.Tests:Paragraph({
+        Title = "Error when receiving information about the Discord server",
+        Desc = game:GetService("HttpService"):JSONEncode(Response),
+        Image = "triangle-alert",
+        ImageSize = 26,
+        Color = "Red",
+    })
+end
+
 
 
 local function parseJSON(luau_table, indent, level, visited)
