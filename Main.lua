@@ -1,4 +1,4 @@
-local WindUI = loadstring(game:HttpGet("https://github.com/picklenuggest/Sayorie-Scripts/releases/latest/download/main.lua"))()
+local WindUI = loadstring(game:HttpGet("https://github.com/picklenuggest/Sayorie-Scripts/releases/latest/download/Main.lua"))()
 --local WindUI = loadstring(readfile("WindUI/version-time-12.06.lua"))()
 
 -- Test
