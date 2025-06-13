@@ -2,6 +2,8 @@ local WindUI = require("./src/init")
 
 -- Test
 
+
+
 -- Set theme:
 --WindUI:SetTheme("Light")
 
@@ -47,6 +49,7 @@ WindUI:Popup({
     }
 })
 
+
 repeat wait() until Confirmed
 
 --
@@ -57,7 +60,7 @@ local Window = WindUI:CreateWindow({
     IconThemed = true,
     Author = "Example UI",
     Folder = "CloudHub",
-    Size = UDim2.fromOffset(615, 344),
+    Size = UDim2.fromOffset(580, 460),
     Transparent = true,
     Theme = "Dark",
     User = {
@@ -83,8 +86,10 @@ local Window = WindUI:CreateWindow({
     },
 })
 
+
 -- Window:SetBackgroundImage("rbxassetid://13511292247")
 -- Window:SetBackgroundImageTransparency(0.9)
+
 
 -- TopBar Edit
 
@@ -101,6 +106,7 @@ Window:CreateTopbarButton("MyCustomButton1", "bird",         function() print("c
 Window:CreateTopbarButton("MyCustomButton2", "droplet-off",  function() print("clicked 2!") end,  989)
 Window:CreateTopbarButton("MyCustomButton3", "battery-plus", function() print("clicked 3!!") end, 988)
 
+
 Window:EditOpenButton({
     Title = "Open Example UI",
     Icon = "monitor",
@@ -114,7 +120,9 @@ Window:EditOpenButton({
     Draggable = true,
 })
 
+
 local Tabs = {
+    ScriptHubTab = Window:Tab({ Title = "Script Hub", Icon = "search-code", Desc = "Search for scripts using the ScriptBlox API." }),
     ParagraphTab = Window:Tab({ Title = "Paragraph", Icon = "type" }),
     ButtonTab = Window:Tab({ Title = "Button", Icon = "mouse-pointer-2", Desc = "Contains interactive buttons for various actions." }),
     CodeTab = Window:Tab({ Title = "Code", Icon = "code", Desc = "Displays and manages code snippets." }),
@@ -150,6 +158,95 @@ local Tabs = {
 }
 
 Window:SelectTab(1)
+
+-- Script Hub
+local HttpService = game:GetService("HttpService")
+local ScriptHubAPI = "https://scriptblox.com/api/"
+local scriptResults = {}
+local searchQuery = ""
+
+local resultsSection = Tabs.ScriptHubTab:Section({ Title = "Results", Icon = "list" })
+
+local function clearResults()
+    for _, child in ipairs(resultsSection.Container:GetChildren()) do
+        if child.Name == "Paragraph" or child.Name == "Divider" then
+            child:Destroy()
+        end
+    end
+    scriptResults = {}
+end
+
+local function fetchScripts()
+    clearResults()
+    if searchQuery == "" then return end
+
+    local url = ScriptHubAPI .. "scripts/search?q=" .. HttpService:UrlEncode(searchQuery) .. "&max=10&page=1"
+    
+    local success, response = pcall(function()
+        return WindUI.Creator.Request({ Url = url, Method = "GET" })
+    end)
+
+    if success and response.Success then
+        local data = HttpService:JSONDecode(response.Body)
+        if data and data.result and data.result.scripts then
+            for _, scriptData in ipairs(data.result.scripts) do
+                local scriptDesc = ('<font color="#a1a1aa">• Game:</font> %s\n<font color="#a1a1aa">• Views:</font> %d'):format(
+                    scriptData.game.name or "N/A",
+                    scriptData.views or 0
+                )
+                
+                local paragraph = resultsSection:Paragraph({
+                    Title = scriptData.title,
+                    Desc = scriptDesc,
+                    Buttons = {
+                        {
+                            Title = "Copy Script",
+                            Variant = "Primary",
+                            Icon = "copy",
+                            Callback = function()
+                                setclipboard(scriptData.script)
+                                WindUI:Notify({
+                                    Title = "Copied!",
+                                    Content = "Script content copied to clipboard.",
+                                    Duration = 3,
+                                    Icon = "check-circle"
+                                })
+                            end,
+                        }
+                    }
+                })
+                table.insert(scriptResults, paragraph)
+            end
+        else
+            resultsSection:Paragraph({
+                Title = "No Results",
+                Desc = "No scripts found for your query.",
+                Color = "Orange"
+            })
+        end
+    else
+        resultsSection:Paragraph({
+            Title = "API Error",
+            Desc = "Failed to fetch scripts from ScriptBlox.",
+            Color = "Red"
+        })
+    end
+end
+
+Tabs.ScriptHubTab:Input({
+    Title = "Search Scripts",
+    Placeholder = "e.g., Blox Fruits, Pet Simulator X",
+    Callback = function(text)
+        searchQuery = text
+    end
+})
+
+Tabs.ScriptHubTab:Button({
+    Title = "Search",
+    Icon = "search",
+    Callback = fetchScripts
+})
+
 
 Tabs.ParagraphTab:Paragraph({
     Title = "Paragraph with Image & Thumbnail",
@@ -219,11 +316,14 @@ for _,i in next, { "Default", "Red", "Orange", "Green", "Blue", "Grey", "White" 
     })
 end
 
+
+
 Tabs.ButtonTab:Button({
     Title = "Click Me",
     Desc = "This is a simple button",
     Callback = function() print("Button Clicked!") end
 })
+
 
 local destroybtn
 destroybtn = Tabs.ButtonTab:Button({
@@ -244,11 +344,13 @@ Tabs.ButtonTab:Button({
 
 Tabs.ButtonTab:Divider()
 
+
 Tabs.ButtonTab:Button({
     Title = "Locked Button",
     Desc = "This button is locked",
     Locked = true,
 })
+
 
 Tabs.CodeTab:Code({
     Title = "example-code.luau",
@@ -292,6 +394,8 @@ Tabs.CodeTab:Code({
     Code = [[print("WindUI on top!")]],
 })
 
+
+
 Tabs.ColorPickerTab:Colorpicker({
     Title = "Pick a Color",
     Default = Color3.fromRGB(255, 0, 0),
@@ -304,6 +408,7 @@ Tabs.ColorPickerTab:Colorpicker({
     Transparency = 0,
     Callback = function(color) print("Background color: " .. tostring(color)) end
 })
+
 
 Tabs.DialogTab:Button({
     Title = "Create Example Dialog",
@@ -370,6 +475,7 @@ Tabs.DialogTab:Button({
     end,
 })
 
+
 Tabs.NotificationTab:Button({
     Title = "Click to get Notified",
     Callback = function() 
@@ -419,6 +525,7 @@ Tabs.NotificationTab:Button({
     end
 })
 
+
 Tabs.ToggleTab:Toggle({
     Title = "Enable Feature",
     --Image = "bird",
@@ -452,6 +559,7 @@ Tabs.ToggleTab:Toggle({
     Callback = function(state) print("'Checkbox' Toggle with icon activated: " .. tostring(state)) end
 })
 
+
 Tabs.SliderTab:Slider({
     Title = "Volume Slider",
     Value = {
@@ -483,6 +591,7 @@ Tabs.SliderTab:Slider({
     Callback = function(value) print("Brightness set to: " .. value) end
 })
 
+
 Tabs.InputTab:Input({
     Title = "Username",
     Value = "Guest",
@@ -497,6 +606,7 @@ Tabs.InputTab:Input({
     Callback = function(input) print("Password entered.") end
 })
 
+
 Tabs.InputTab:Input({
     Title = "Input with icon",
     Value = "pisun",
@@ -504,6 +614,7 @@ Tabs.InputTab:Input({
     Placeholder = "Enter pisun",
     Callback = function(input) print("pisun entered.") end
 })
+
 
 Tabs.InputTab:Input({
     Title = "Comment",
@@ -527,6 +638,7 @@ Tabs.InputTab:Input({
     end
 })
 
+
 Tabs.KeybindTab:Keybind({
     Title = "Keybind Example",
     Desc = "Keybind to open ui",
@@ -535,6 +647,7 @@ Tabs.KeybindTab:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 })
+
 
 Tabs.DropdownTab:Dropdown({
     Title = "Select an Option",
@@ -554,10 +667,11 @@ Tabs.DropdownTab:Dropdown({
     end
 })
 
+
+
 -- Configuration
 -- Optional
 
-local HttpService = game:GetService("HttpService")
 
 local folderPath = "WindUI"
 makefolder(folderPath)
@@ -752,55 +866,6 @@ Tabs.CreateThemeTab:Button({
     end
 })
 
-local InviteCode = "ApbHXtAwU2"
-local DiscordAPI = "https://discord.com/api/v10/invites/" .. InviteCode .. "?with_counts=true&with_expiration=true"
-
-local Response = game:GetService("HttpService"):JSONDecode(WindUI.Creator.Request({
-    Url = DiscordAPI,
-    Method = "GET",
-    Headers = {
-        ["User-Agent"] = "RobloxBot/1.0",
-        ["Accept"] = "application/json"
-    }
-}).Body)
-
-if Response and Response.guild then
-    local DiscordInfo = Tabs.Tests:Paragraph({
-        Title = Response.guild.name,
-        Desc = 
-            ' <font color="#52525b">•</font> Member Count : ' .. tostring(Response.approximate_member_count) .. 
-            '\n <font color="#16a34a">•</font> Online Count : ' .. tostring(Response.approximate_presence_count)
-        ,
-        Image = "https://cdn.discordapp.com/icons/" .. Response.guild.id .. "/" .. Response.guild.icon .. ".png?size=1024",
-        ImageSize = 42,
-    })
-
-    Tabs.Tests:Button({
-        Title = "Update Info",
-        --Image = "refresh-ccw",
-        Callback = function()
-            local UpdatedResponse = game:GetService("HttpService"):JSONDecode(WindUI.Creator.Request({
-                Url = DiscordAPI,
-                Method = "GET",
-            }).Body)
-            
-            if UpdatedResponse and UpdatedResponse and UpdatedResponse.guild then
-                DiscordInfo:SetDesc(
-                    ' <font color="#52525b">•</font> Member Count : ' .. tostring(UpdatedResponse.approximate_member_count) .. 
-                    '\n <font color="#16a34a">•</font> Online Count : ' .. tostring(UpdatedResponse.approximate_presence_count)
-                )
-            end
-        end
-    })
-else
-    Tabs.Tests:Paragraph({
-        Title = "Error when receiving information about the Discord server",
-        Desc = game:GetService("HttpService"):JSONEncode(Response),
-        Image = "triangle-alert",
-        ImageSize = 26,
-        Color = "Red",
-    })
-end
 
 local function parseJSON(luau_table, indent, level, visited)
     indent = indent or 2
@@ -938,7 +1003,11 @@ Tabs.Tests:Button({
     end
 })
 
+
+
+
 -- Configs
+
 
 local ToggleElement = Tabs.ConfigTab:Toggle({
     Title = "Toggle",
@@ -990,11 +1059,14 @@ local ColorpickerElement = Tabs.ConfigTab:Colorpicker({
 
 -- Configs
 
+
 -- 1. Load ConfigManager
 local ConfigManager = Window.ConfigManager
 
+
 -- 2. Create Config File                    ↓ Config File name
 local myConfig = ConfigManager:CreateConfig("myConfig")
+
 
 -- 3. Register elements
 
@@ -1005,6 +1077,7 @@ myConfig:Register( "keybindNameExample",         KeybindElement     )
 myConfig:Register( "dropdownNameExample",        DropdownElement    )
 myConfig:Register( "inputNameExample",           InputElement       )
 myConfig:Register( "ColorpickerNameExample",     ColorpickerElement )
+
 
 -- Save
 
@@ -1020,9 +1093,12 @@ myConfig:Register( "ColorpickerNameExample",     ColorpickerElement )
                                    
 -- myConfig:Save()
 
+
 -- Load   
 
 -- myConfig:Load()
+
+
 
 -- Usage:
 
@@ -1042,7 +1118,10 @@ Tabs.ConfigTab:Button({
     end
 })
 
+
+
 -- function :OnClose()
+
 
 Window:OnClose(function()
     print("UI closed.")
