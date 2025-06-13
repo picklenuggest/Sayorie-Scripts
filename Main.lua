@@ -1,4 +1,5 @@
-local WindUI = require("./src/init")
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+--local WindUI = loadstring(readfile("WindUI/version-time-12.06.lua"))()
 
 -- Test
 
@@ -122,7 +123,6 @@ Window:EditOpenButton({
 
 
 local Tabs = {
-    ScriptHubTab = Window:Tab({ Title = "Script Hub", Icon = "search-code", Desc = "Search for scripts using the ScriptBlox API." }),
     ParagraphTab = Window:Tab({ Title = "Paragraph", Icon = "type" }),
     ButtonTab = Window:Tab({ Title = "Button", Icon = "mouse-pointer-2", Desc = "Contains interactive buttons for various actions." }),
     CodeTab = Window:Tab({ Title = "Code", Icon = "code", Desc = "Displays and manages code snippets." }),
@@ -158,94 +158,6 @@ local Tabs = {
 }
 
 Window:SelectTab(1)
-
--- Script Hub
-local HttpService = game:GetService("HttpService")
-local ScriptHubAPI = "https://scriptblox.com/api/"
-local scriptResults = {}
-local searchQuery = ""
-
-local resultsSection = Tabs.ScriptHubTab:Section({ Title = "Results", Icon = "list" })
-
-local function clearResults()
-    for _, child in ipairs(resultsSection.Container:GetChildren()) do
-        if child.Name == "Paragraph" or child.Name == "Divider" then
-            child:Destroy()
-        end
-    end
-    scriptResults = {}
-end
-
-local function fetchScripts()
-    clearResults()
-    if searchQuery == "" then return end
-
-    local url = ScriptHubAPI .. "scripts/search?q=" .. HttpService:UrlEncode(searchQuery) .. "&max=10&page=1"
-    
-    local success, response = pcall(function()
-        return WindUI.Creator.Request({ Url = url, Method = "GET" })
-    end)
-
-    if success and response.Success then
-        local data = HttpService:JSONDecode(response.Body)
-        if data and data.result and data.result.scripts and #data.result.scripts > 0 then
-            for _, scriptData in ipairs(data.result.scripts) do
-                local scriptDesc = ('<font color="#a1a1aa">• Game:</font> %s\n<font color="#a1a1aa">• Views:</font> %d'):format(
-                    scriptData.game.name or "N/A",
-                    scriptData.views or 0
-                )
-                
-                resultsSection:Paragraph({
-                    Title = scriptData.title,
-                    Desc = scriptDesc,
-                    Buttons = {
-                        {
-                            Title = "Copy Script",
-                            Variant = "Primary",
-                            Icon = "copy",
-                            Callback = function()
-                                setclipboard(scriptData.script)
-                                WindUI:Notify({
-                                    Title = "Copied!",
-                                    Content = "Script content copied to clipboard.",
-                                    Duration = 3,
-                                    Icon = "check-circle"
-                                })
-                            end,
-                        }
-                    }
-                })
-            end
-        else
-            resultsSection:Paragraph({
-                Title = "No Results",
-                Desc = "No scripts found for your query.",
-                Color = "Orange"
-            })
-        end
-    else
-        resultsSection:Paragraph({
-            Title = "API Error",
-            Desc = "Failed to fetch scripts from ScriptBlox.",
-            Color = "Red"
-        })
-    end
-end
-
-Tabs.ScriptHubTab:Input({
-    Title = "Search Scripts",
-    Placeholder = "e.g., Blox Fruits, Pet Simulator X",
-    Callback = function(text)
-        searchQuery = text
-    end
-})
-
-Tabs.ScriptHubTab:Button({
-    Title = "Search",
-    Icon = "search",
-    Callback = fetchScripts
-})
-
 
 Tabs.ParagraphTab:Paragraph({
     Title = "Paragraph with Image & Thumbnail",
@@ -671,6 +583,8 @@ Tabs.DropdownTab:Dropdown({
 -- Configuration
 -- Optional
 
+
+local HttpService = game:GetService("HttpService")
 
 local folderPath = "WindUI"
 makefolder(folderPath)
