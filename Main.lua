@@ -67,7 +67,7 @@ local Window = WindUI:CreateWindow({
     User = {
         Enabled = true, -- <- or false
         Callback = function() print("clicked") end, -- <- optional
-        Anonymous = true -- <- or true
+        Anonymous = false -- <- or true
     },
     SideBarWidth = 200,
     -- HideSearchBar = true, -- hides searchbar
